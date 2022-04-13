@@ -28,12 +28,17 @@ async function run(url, selector) {
                 unvisitedUrls.push(item);
             }
         });
-        const nextUrl = unvisitedUrls.pop();
-        visitedUrls.push(nextUrl);
-        await run(nextUrl, selector)
     } catch (error) {
         console.log(error.message);
     }
     browser.close();
+    if(unvisitedUrls.length>0){
+        const nextUrl = unvisitedUrls.pop();
+        visitedUrls.push(nextUrl);
+        await run(nextUrl, selector)    
+    }else{
+        console.log('Exiting process');
+        process.exit();
+    }
 }
 run(domain, selector);
