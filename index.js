@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer');
 const domain = process.argv[2];
 const selector = process.argv[3];
-const urls = [];
+const unvisitedUrls = [];
+const visitedUrls = [];
 if (!domain) {
     throw "Please provide URL as a first argument";
 }
@@ -16,8 +17,20 @@ async function run(url, selector) {
         const selectorExists = await page.evaluate((selector) => {
             return Promise.resolve(Array.from(document.querySelectorAll(selector)).length > 0);
         }, selector);
-        console.log(selectorExists);
-
+        if(selectorExists){
+            console.log(url);
+        }
+        const domainUrls = await page.evaluate((domain) => {
+            return Promise.resolve(Array.from(document.querySelectorAll(`[href^='${domain}']`)).map(item => item.href));
+        }, domain);
+        domainUrls.map(item => {
+            if (!visitedUrls.includes(item) && !unvisitedUrls.includes(item)) {
+                unvisitedUrls.push(item);
+            }
+        });
+        const nextUrl = unvisitedUrls.pop();
+        visitedUrls.push(nextUrl);
+        await run(nextUrl, selector)
     } catch (error) {
         console.log(error.message);
     }
